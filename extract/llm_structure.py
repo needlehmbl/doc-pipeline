@@ -35,12 +35,33 @@ from extract.schema_config import EXTRACTION_SCHEMA
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "llama3.1"
+DEFAULT_MODEL = "llama3.2:3b"
+DEFAULT_HOST = "http://localhost:11434"
+
+# Must match the model documented in README / pulled via `ollama pull`.
+DEFAULT_MODEL = "llama3.2:3b"
 DEFAULT_HOST = "http://localhost:11434"
 
 # Number of corrective re-prompts after the first response fails to
 # parse as valid JSON before we give up.
 MAX_RETRIES = 2
+
+
+def resolved_model() -> str:
+    """The effective Ollama model for this run (respects OLLAMA_MODEL)."""
+    return os.getenv("OLLAMA_MODEL", DEFAULT_MODEL)
+
+
+def list_models() -> list[str]:
+    """Names of models currently present on the Ollama server (may be empty)."""
+    client = ollama.Client(host=os.getenv("OLLAMA_HOST", DEFAULT_HOST))
+    try:
+        listing = client.list()  # newer clients return a typed ListResponse
+    except Exception:
+        return []
+    if isinstance(listing, dict):
+        return [str(m.get("name", "")) for m in listing.get("models", [])]
+    return [str(getattr(m, "model", "")) for m in getattr(listing, "models", [])]
 
 
 def build_prompt(raw_text: str) -> str:
@@ -111,7 +132,7 @@ JSON:"""
 
 
 def call_ollama(prompt: str) -> str:
-    model = os.getenv("OLLAMA_MODEL", DEFAULT_MODEL)
+    model = resolved_model()
     client = ollama.Client(host=os.getenv("OLLAMA_HOST", DEFAULT_HOST))
     response = client.generate(model=model, prompt=prompt, options={"temperature": 0})
 

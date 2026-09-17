@@ -3,7 +3,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from extract.llm_structure import build_prompt, build_recheck_prompt, parse_response
+from extract.llm_structure import (
+    build_prompt,
+    build_recheck_prompt,
+    list_models,
+    parse_response,
+    resolved_model,
+)
 
 
 def test_build_prompt_contains_schema_fields():
@@ -39,3 +45,13 @@ def test_recheck_prompt_quotes_only_flagged_fields():
     assert "total_amount" in prompt
     assert "LOW confidence" in prompt
     assert '"vendor_name": "Acme"' in prompt
+
+
+def test_default_model_matches_documented_pull(monkeypatch):
+    monkeypatch.delenv("OLLAMA_MODEL", raising=False)
+    assert resolved_model() == "llama3.2:3b"
+
+
+def test_list_models_never_raises(monkeypatch):
+    monkeypatch.delenv("OLLAMA_HOST", raising=False)
+    assert isinstance(list_models(), list)  # [] when Ollama is unreachable

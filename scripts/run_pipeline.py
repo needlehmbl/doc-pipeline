@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from dotenv import load_dotenv
 
 from extract.extractor import extract_csv_rows, extract_text
-from extract.llm_structure import recheck, structure
+from extract.llm_structure import list_models, recheck, resolved_model, structure
 from ingest.watch import list_pending, move_to
 from load.db import fetch_all, init_db, insert_record
 from validate.schema import is_valid, validate
@@ -235,6 +235,31 @@ def list_mode() -> None:
         print("  ".join(str(r.get(h, "")).ljust(widths[h]) for h in headers))
 
 
+def _ensure_ollama_ready() -> None:
+    """
+    Fail fast with an actionable error when Ollama is unreachable or the
+    configured model hasn't been pulled. Prevents a wall of cryptic
+    per-file `model not found` failures.
+    """
+    model = resolved_model()
+    try:
+        available = list_models()
+    except Exception as exc:
+        sys.exit(f"Error: cannot reach Ollama: {exc}")
+
+    if not available:
+        sys.exit(
+            "Error: Ollama is running but has no models pulled for extraction.\n"
+            f"  Fix: ollama pull {model}"
+        )
+    if model not in available:
+        sys.exit(
+            f"Error: Ollama model '{model}' (set via OLLAMA_MODEL) is not pulled.\n"
+            f"  Available models: {', '.join(sorted(available))}\n"
+            f"  Fix: ollama pull {model}"
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Local document intelligence pipeline")
     parser.add_argument(
@@ -262,6 +287,8 @@ def main() -> None:
     if args.list:
         list_mode()
         return
+
+    _ensure_ollama_ready()
 
     if args.file:
         status = process_file(Path(args.file), lenient=args.lenient)
