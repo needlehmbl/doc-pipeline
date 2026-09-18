@@ -8,8 +8,9 @@ Run with:
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -40,8 +41,6 @@ FAILED = _resolve(FAILED_DIR)
 REVIEW_DIR = FAILED / "review"
 
 # Local imports (need repo root on sys.path when run as module)
-import sys
-
 sys.path.insert(0, str(ROOT))
 
 from extract.extractor import SUPPORTED_EXTENSIONS  # noqa: E402
@@ -198,8 +197,8 @@ def review_approve(item_id: str, payload: ApprovePayload) -> dict:
         rec_path = matches[0]
     try:
         stored = json.loads(rec_path.read_text())
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Corrupt review record")
+    except json.JSONDecodeError as err:
+        raise HTTPException(status_code=500, detail="Corrupt review record") from err
     stored.pop("_reason", None)
     record = payload.record if payload.record is not None else stored
     source_file = record.get("source_file", rec_path.name)
@@ -207,7 +206,7 @@ def review_approve(item_id: str, payload: ApprovePayload) -> dict:
     try:
         insert_record(_db(), source_file, record)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"DB insert failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"DB insert failed: {exc}") from exc
     rec_path.unlink(missing_ok=True)
     return {"ok": True, "approved": rec_path.name}
 
@@ -237,7 +236,7 @@ def inbox() -> dict:
 
 
 @app.post("/api/upload")
-async def upload(files: list[UploadFile] = File(...)) -> dict:
+async def upload(files: Annotated[list[UploadFile], File(...)]) -> dict:
     INBOX.mkdir(parents=True, exist_ok=True)
     saved: list[str] = []
     for f in files:
