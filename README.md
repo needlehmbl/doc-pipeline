@@ -1,6 +1,6 @@
 # Local Document Intelligence Pipeline
 
-[![CI](https://github.com/Needleeeeeeee/doc-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Needleeeeeeee/doc-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/needlehmbl/doc-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/needlehmbl/doc-pipeline/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](#prerequisites)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -97,7 +97,7 @@ sudo apt install tesseract-ocr tesseract-ocr-eng
 ## Installation
 
 ```bash
-git clone https://github.com/Needleeeeeeee/doc-pipeline.git
+git clone https://github.com/needlehmbl/doc-pipeline.git
 cd doc-pipeline
 
 python -m venv venv

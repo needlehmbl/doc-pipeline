@@ -9,7 +9,7 @@ description = "Local, fully offline document intelligence pipeline: ingest messy
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Needleeeeeeee" }]
+authors = [{ name = "needlehmbl" }]
 keywords = ["llm", "ollama", "document-processing", "ocr", "pipeline", "sqlite"]
 classifiers = [
     "Programming Language :: Python :: 3",
