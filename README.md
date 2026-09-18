@@ -34,6 +34,9 @@ No data ever leaves your machine.
   doesn't sink the whole file
 - **SQLite sink** — schema generated directly from the extraction schema;
   drop-in replaceable with Postgres
+- **Dark web GUI** — React + TypeScript dashboard (see [Web GUI](#web-gui))
+  with stats, records browser, human review queue (approve/reject with
+  editing), drag-and-drop uploads, and inbox processing
 
 ## How it works
 
@@ -146,12 +149,48 @@ python scripts/run_pipeline.py --lenient
 > some records to land in the review queue. That's the pipeline working as
 > designed, not failing.
 
+## Web GUI
+
+A dark-themed React + TypeScript dashboard backed by a small FastAPI server,
+so you can drive the whole pipeline without touching the CLI.
+
+```bash
+./gui.sh          # start backend (:8001) + frontend (:5174)
+./gui.sh stop     # stop both
+./gui.sh status   # check whether each server is up
+```
+
+Then open **http://localhost:5174**. The first run auto-installs any missing
+deps (pip `fastapi`/`uvicorn`/`python-multipart`, plus `npm install`).
+
+What you get:
+
+| Tab      | What it does                                                        |
+|----------|---------------------------------------------------------------------|
+| Overview | Loaded / review / failed / inbox counts, total amount, failed files |
+| Records  | Searchable table of every row in SQLite, with delete               |
+| Review   | Low-confidence extractions with reasons — edit fields inline, then **approve → DB** or **reject** |
+| Inbox    | Drag-and-drop uploads (PDF/PNG/JPG/CSV) plus per-file or whole-inbox processing, with optional lenient mode |
+| Schema   | Live view of the extraction fields and cross-field checks          |
+
+Prefer running the pieces manually?
+
+```bash
+uvicorn api.server:app --reload --port 8001  # backend (docs at /docs)
+cd gui && npm install && npm run dev          # frontend (:5174)
+```
+
 ## Project layout
 
 ```
 doc-pipeline/
 ├── scripts/
 │   └── run_pipeline.py      # CLI entry point
+├── api/
+│   └── server.py            # FastAPI backend for the web GUI
+├── gui/                     # React + TypeScript frontend (dark theme)
+│   └── src/App.tsx
+├── gui.sh                   # one command to start/stop the GUI stack
 ├── ingest/
 │   └── watch.py             # inbox scan + file archiving
 ├── extract/
@@ -246,7 +285,7 @@ right.
 
 ## Roadmap
 
-- [ ] Simple FastAPI review UI (approve/reject records from the queue)
+- [x] Simple FastAPI review UI (approve/reject records from the queue)
 - [ ] Swappable Postgres sink to demonstrate schema migrations
 - [ ] Batch progress bar + watch mode via `watchdog`
 - [ ] Per-field confidence aggregation summary after each run

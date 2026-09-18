@@ -39,7 +39,7 @@ dev = ["pytest>=7.0"]
 doc-pipeline = "scripts.run_pipeline:main"
 
 [tool.setuptools]
-packages = ["ingest", "extract", "validate", "load", "scripts"]
+packages = ["ingest", "extract", "validate", "load", "scripts", "api"]
 
 [tool.ruff]
 target-version = "py310"

@@ -8,6 +8,9 @@ dist/
 .pytest_cache/
 .ruff_cache/
 
+# GUI launcher state (pids + logs)
+.gui/
+
 # Secrets / local config
 .env
 
